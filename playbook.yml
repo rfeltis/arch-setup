@@ -52,11 +52,11 @@
         state: directory
         mode: "0755"
 
-    - name: Hard link the fish config from the repo
+    - name: Link the fish config from the repo
       ansible.builtin.file:
         src: "{{ playbook_dir }}/fish/config.fish"
         dest: "{{ fish_config }}"
-        state: hard
+        state: link
         force: true
 
     - name: Check for paru
