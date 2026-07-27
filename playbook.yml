@@ -39,6 +39,7 @@
       - base-devel
       - git
       - rust
+      - dkms
 
     aur_packages:
       - brave-bin
@@ -49,6 +50,7 @@
       - r2modman-bin
       - bazecor
       - ventoy-bin
+      - xpad-noone-git
 
   tasks:
     - name: Enable the multilib repository
