@@ -32,6 +32,9 @@
       - gimp
       - krita
       - steam
+      - mumble
+      - feishin
+      - signal-desktop
       # build deps for paru
       - base-devel
       - git
@@ -43,6 +46,9 @@
       - discord
       - github-copilot-cli
       - herdr-bin
+      - r2modman-bin
+      - bazecor
+      - ventoy-bin
 
   tasks:
     - name: Enable the multilib repository
