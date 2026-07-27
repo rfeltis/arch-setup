@@ -13,6 +13,7 @@
       - plasma-meta
       - sddm
       - konsole
+      - ghostty
       - dolphin
       # shell + cli
       - fish
@@ -35,6 +36,7 @@
       - brave-bin
       - visual-studio-code-bin
       - discord
+      - github-copilot-cli
 
   tasks:
     - name: Install packages
