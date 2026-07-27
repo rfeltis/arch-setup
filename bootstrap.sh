@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-# One-time bootstrap for a fresh Arch install. Does the bare minimum,
-# then hands everything else to Ansible.
+# One-time bootstrap for a fresh Arch install.
 #
 #   bash <(curl -fsSL https://raw.githubusercontent.com/rfeltis/arch-setup/main/bootstrap.sh)
-#
-# The repo is public and is cloned over HTTPS, so no GitHub credentials are
-# needed to get started. SSH keys are set up afterwards, for pushing changes
-# back and for private repos -- not as a prerequisite for running this.
 set -euo pipefail
 
 REPO_HTTPS="https://github.com/rfeltis/arch-setup.git"
@@ -23,7 +18,7 @@ fi
 echo ">>> Installing bootstrap packages"
 sudo pacman -Syu --needed --noconfirm git ansible base-devel github-cli openssh
 
-# --- Get the code (no auth required) ------------------------------------
+# --- Get the code ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)"
 
 if [[ -f "${SCRIPT_DIR:-}/playbook.yml" ]]; then
@@ -38,12 +33,11 @@ else
     git clone "$REPO_HTTPS" "$REPO_DIR"
 fi
 
-# --- Run the playbook ---------------------------------------------------
+# --- Run the playbook ---
 echo ">>> Running the playbook"
 ansible-playbook -i localhost, -c local "$REPO_DIR/playbook.yml" --ask-become-pass "$@"
 
-# --- GitHub identity (optional, for pushing back) -----------------------
-# Everything above works without this. Set SKIP_GITHUB=1 to bypass.
+# --- GitHub identity ---
 if [[ "$SKIP_GITHUB" == "1" ]]; then
     echo ">>> Skipping GitHub setup (SKIP_GITHUB=1)"
 else
@@ -58,8 +52,7 @@ else
         gh auth login --hostname github.com --git-protocol ssh --web --scopes admin:public_key
     fi
 
-    # Only refresh if an older login lacks the key-upload scope. This is
-    # interactive, so its output must never be silenced.
+    # Interactive: never silence this output.
     if ! gh auth status --hostname github.com 2>&1 | grep -q 'admin:public_key'; then
         echo ">>> Granting the admin:public_key scope"
         gh auth refresh --hostname github.com --scopes admin:public_key
@@ -67,11 +60,9 @@ else
 
     if ! gh ssh-key list 2>/dev/null | grep -qF "$(awk '{print $2}' "$SSH_KEY.pub")"; then
         echo ">>> Adding the SSH key to your GitHub account"
-        # gh auth login may already have uploaded it; a duplicate is not fatal.
         gh ssh-key add "$SSH_KEY.pub" --title "$(hostname)" --type authentication || true
     fi
 
-    # Now that the key is in place, push over SSH instead of HTTPS.
     if [[ -d "$REPO_DIR/.git" ]] && git -C "$REPO_DIR" remote get-url origin 2>/dev/null | grep -q '^https://'; then
         echo ">>> Switching origin to SSH"
         git -C "$REPO_DIR" remote set-url origin "$REPO_SSH"

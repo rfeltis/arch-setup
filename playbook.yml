@@ -44,8 +44,6 @@
         name: "{{ ansible_user_id | default(lookup('env', 'USER')) }}"
         shell: /usr/bin/fish
 
-    # Arch's fzf ships no key bindings, and fish binds ctrl-r to its own
-    # history pager, so load fzf's bindings and then re-bind ctrl-r over it.
     - name: Configure fzf for fish
       ansible.builtin.copy:
         dest: "{{ lookup('env', 'HOME') }}/.config/fish/conf.d/fzf.fish"
@@ -72,8 +70,6 @@
             depth: 1
             version: master
 
-        # makepkg refuses to run as root and can't prompt for sudo through
-        # Ansible, so build as the user and install the result with pacman.
         - name: Build paru
           ansible.builtin.command:
             cmd: makepkg -sf --noconfirm
