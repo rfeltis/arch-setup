@@ -71,13 +71,12 @@
       loop: "{{ fish_links }}"
 
     - name: Check for paru
-      ansible.builtin.command: command -v paru
+      ansible.builtin.stat:
+        path: /usr/bin/paru
       register: paru
-      changed_when: false
-      failed_when: false
 
     - name: Build and install paru
-      when: paru.rc != 0
+      when: not paru.stat.exists
       block:
         - name: Clone paru
           ansible.builtin.git:
