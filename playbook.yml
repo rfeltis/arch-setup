@@ -1,0 +1,117 @@
+---
+- name: Set up Arch
+  hosts: all
+  gather_facts: false
+
+  vars:
+    packages:
+      # KDE
+      - plasma-meta
+      - sddm
+      - konsole
+      - dolphin
+      # shell + cli
+      - fish
+      - eza
+      - fzf
+      - btop
+      # build deps for paru
+      - base-devel
+      - git
+      - rust
+
+    aur_packages:
+      - brave-bin
+      - visual-studio-code-bin
+      - discord
+
+  tasks:
+    - name: Install packages
+      become: true
+      ansible.builtin.package:
+        name: "{{ packages }}"
+        state: present
+
+    - name: Enable SDDM
+      become: true
+      ansible.builtin.systemd_service:
+        name: sddm
+        enabled: true
+
+    - name: Set fish as the login shell
+      become: true
+      ansible.builtin.user:
+        name: "{{ ansible_user_id | default(lookup('env', 'USER')) }}"
+        shell: /usr/bin/fish
+
+    # Arch's fzf ships no key bindings, and fish binds ctrl-r to its own
+    # history pager, so load fzf's bindings and then re-bind ctrl-r over it.
+    - name: Configure fzf for fish
+      ansible.builtin.copy:
+        dest: "{{ lookup('env', 'HOME') }}/.config/fish/conf.d/fzf.fish"
+        mode: "0644"
+        content: |
+          status is-interactive; or exit 0
+          fzf --fish | source
+          bind \cr fzf-history-widget
+          bind -M insert \cr fzf-history-widget
+
+    - name: Check for paru
+      ansible.builtin.command: command -v paru
+      register: paru
+      changed_when: false
+      failed_when: false
+
+    - name: Build and install paru
+      when: paru.rc != 0
+      block:
+        - name: Clone paru
+          ansible.builtin.git:
+            repo: https://aur.archlinux.org/paru.git
+            dest: /tmp/paru
+            depth: 1
+            version: master
+
+        # makepkg refuses to run as root and can't prompt for sudo through
+        # Ansible, so build as the user and install the result with pacman.
+        - name: Build paru
+          ansible.builtin.command:
+            cmd: makepkg -sf --noconfirm
+            chdir: /tmp/paru
+          changed_when: true
+
+        - name: Find the built package
+          ansible.builtin.find:
+            paths: /tmp/paru
+            patterns: "paru-*.pkg.tar.*"
+            excludes: "paru-debug-*"
+          register: pkg
+
+        - name: Install paru
+          become: true
+          ansible.builtin.command:
+            cmd: pacman -U --noconfirm --needed {{ pkg.files | map(attribute='path') | join(' ') }}
+          changed_when: true
+
+    - name: Install AUR packages
+      block:
+        - name: Allow paru to run pacman without a password prompt
+          become: true
+          ansible.builtin.copy:
+            dest: /etc/sudoers.d/99-paru
+            mode: "0440"
+            validate: visudo -cf %s
+            content: "{{ lookup('env', 'USER') }} ALL=(ALL) NOPASSWD: /usr/bin/pacman\n"
+
+        - name: Install with paru
+          ansible.builtin.command:
+            cmd: paru -S --noconfirm --needed --skipreview {{ item }}
+          loop: "{{ aur_packages }}"
+          changed_when: true
+
+      always:
+        - name: Drop the passwordless sudo rule
+          become: true
+          ansible.builtin.file:
+            path: /etc/sudoers.d/99-paru
+            state: absent
