@@ -1,7 +1,7 @@
 ---
 - name: Set up Arch
   hosts: all
-  gather_facts: false
+  gather_facts: true
 
   vars:
     fish_dir: "{{ lookup('env', 'HOME') }}/.config/fish"
@@ -40,6 +40,12 @@
       - git
       - rust
       - dkms
+      - linux-headers
+
+    surface_packages:
+      - linux-surface
+      - linux-surface-headers
+      - iptsd
 
     aur_packages:
       - brave-bin
@@ -53,6 +59,36 @@
       - xpad-noone-git
 
   tasks:
+    - name: Detect Surface hardware
+      ansible.builtin.set_fact:
+        is_surface: "{{ 'Surface' in ansible_product_name | default('') }}"
+
+    - name: Read pacman.conf
+      ansible.builtin.slurp:
+        src: /etc/pacman.conf
+      register: pacman_conf
+
+    - name: Set up the linux-surface repository
+      when: is_surface and '[linux-surface]' not in (pacman_conf.content | b64decode)
+      block:
+        - name: Import the linux-surface signing key
+          become: true
+          ansible.builtin.shell:
+            cmd: >-
+              curl -fsSL https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc
+              | pacman-key --add - && pacman-key --lsign-key 56C464BAAC421453
+          changed_when: true
+
+        - name: Add the linux-surface repository
+          become: true
+          ansible.builtin.blockinfile:
+            path: /etc/pacman.conf
+            marker: "# {mark} ANSIBLE linux-surface"
+            block: |
+              [linux-surface]
+              Server = https://pkg.surfacelinux.com/arch/
+          register: surface_repo
+
     - name: Enable the multilib repository
       become: true
       ansible.builtin.replace:
@@ -64,7 +100,7 @@
     - name: Refresh the package databases
       become: true
       ansible.builtin.command: pacman -Sy
-      when: multilib.changed
+      when: multilib.changed or surface_repo.changed | default(false)
       changed_when: false
 
     - name: Install packages
@@ -72,6 +108,13 @@
       ansible.builtin.package:
         name: "{{ packages }}"
         state: present
+
+    - name: Install the Surface kernel
+      become: true
+      ansible.builtin.package:
+        name: "{{ surface_packages }}"
+        state: present
+      when: is_surface
 
     - name: Check the current display manager
       ansible.builtin.stat:
