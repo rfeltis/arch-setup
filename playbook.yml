@@ -76,7 +76,7 @@
       register: paru
 
     - name: Build and install paru
-      when: not paru.stat.exists
+      when: not paru.stat.exists or force_paru | default(false) | bool
       block:
         - name: Clone paru
           ansible.builtin.git:
@@ -103,6 +103,12 @@
           ansible.builtin.command:
             cmd: pacman -U --noconfirm --needed {{ pkg.files | map(attribute='path') | join(' ') }}
           changed_when: true
+
+      always:
+        - name: Remove the paru build directory
+          ansible.builtin.file:
+            path: /tmp/paru
+            state: absent
 
     - name: List installed packages
       ansible.builtin.command: pacman -Qq
