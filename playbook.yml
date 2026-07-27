@@ -37,6 +37,7 @@
       - visual-studio-code-bin
       - discord
       - github-copilot-cli
+      - herdr-bin
 
   tasks:
     - name: Install packages
