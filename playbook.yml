@@ -4,7 +4,10 @@
   gather_facts: false
 
   vars:
-    fish_config: "{{ lookup('env', 'HOME') }}/.config/fish/config.fish"
+    fish_dir: "{{ lookup('env', 'HOME') }}/.config/fish"
+    fish_links:
+      - config.fish
+      - functions/fish_greeting.fish
     packages:
       # KDE
       - plasma-meta
@@ -47,18 +50,20 @@
         name: "{{ ansible_user_id | default(lookup('env', 'USER')) }}"
         shell: /usr/bin/fish
 
-    - name: Create the fish config directory
+    - name: Create the fish config directories
       ansible.builtin.file:
-        path: "{{ fish_config | dirname }}"
+        path: "{{ fish_dir }}/{{ item | dirname }}"
         state: directory
         mode: "0755"
+      loop: "{{ fish_links }}"
 
     - name: Link the fish config from the repo
       ansible.builtin.file:
-        src: "{{ playbook_dir }}/fish/config.fish"
-        dest: "{{ fish_config }}"
+        src: "{{ playbook_dir }}/fish/{{ item }}"
+        dest: "{{ fish_dir }}/{{ item }}"
         state: link
         force: true
+      loop: "{{ fish_links }}"
 
     - name: Check for paru
       ansible.builtin.command: command -v paru

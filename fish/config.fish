@@ -1,9 +1,5 @@
 status is-interactive; or exit 0
 
-function fish_greeting
-    fastfetch
-end
-
 fzf --fish | source
 bind \cr fzf-history-widget
 bind -M insert \cr fzf-history-widget
