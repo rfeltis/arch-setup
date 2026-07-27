@@ -63,13 +63,8 @@
       ansible.builtin.set_fact:
         is_surface: "{{ 'Surface' in ansible_product_name | default('') }}"
 
-    - name: Read pacman.conf
-      ansible.builtin.slurp:
-        src: /etc/pacman.conf
-      register: pacman_conf
-
     - name: Set up the linux-surface repository
-      when: is_surface and '[linux-surface]' not in (pacman_conf.content | b64decode)
+      when: is_surface
       block:
         - name: Import the linux-surface signing key
           become: true
@@ -77,7 +72,14 @@
             cmd: >-
               curl -fsSL https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc
               | pacman-key --add - && pacman-key --lsign-key 56C464BAAC421453
-          changed_when: true
+          changed_when: false
+
+        - name: Remove any unmanaged linux-surface repository entry
+          become: true
+          ansible.builtin.replace:
+            path: /etc/pacman.conf
+            regexp: '(?<!# BEGIN ANSIBLE linux-surface\n)^\[linux-surface\]\n(?:(?:SigLevel|Server|Include)[^\n]*\n)*'
+            replace: ''
 
         - name: Add the linux-surface repository
           become: true
