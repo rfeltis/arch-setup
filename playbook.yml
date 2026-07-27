@@ -76,7 +76,7 @@
       register: paru
 
     - name: Build and install paru
-      when: not paru.stat.exists or force_paru | default(false) | bool
+      when: not paru.stat.exists
       block:
         - name: Clone paru
           ansible.builtin.git:
