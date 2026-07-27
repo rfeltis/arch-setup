@@ -21,6 +21,11 @@
       - btop
       - zoxide
       - fastfetch
+      - micro
+      - ncdu
+      - nano
+      - vim
+      - mpv
       # build deps for paru
       - base-devel
       - git
