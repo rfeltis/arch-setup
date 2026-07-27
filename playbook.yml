@@ -17,6 +17,7 @@
       - fzf
       - btop
       - zoxide
+      - fastfetch
       # build deps for paru
       - base-devel
       - git
