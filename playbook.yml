@@ -31,6 +31,7 @@
       - handbrake
       - gimp
       - krita
+      - steam
       # build deps for paru
       - base-devel
       - git
@@ -44,6 +45,20 @@
       - herdr-bin
 
   tasks:
+    - name: Enable the multilib repository
+      become: true
+      ansible.builtin.replace:
+        path: /etc/pacman.conf
+        regexp: '^#\[multilib\]\n#Include = (.*)$'
+        replace: '[multilib]\nInclude = \1'
+      register: multilib
+
+    - name: Refresh the package databases
+      become: true
+      ansible.builtin.command: pacman -Sy
+      when: multilib.changed
+      changed_when: false
+
     - name: Install packages
       become: true
       ansible.builtin.package:
