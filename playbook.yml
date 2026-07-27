@@ -27,6 +27,10 @@
       - nano
       - vim
       - mpv
+      # apps
+      - handbrake
+      - gimp
+      - krita
       # build deps for paru
       - base-devel
       - git
