@@ -35,7 +35,7 @@ fi
 
 # --- Run the playbook ---
 echo ">>> Running the playbook"
-ansible-playbook -i localhost, -c local "$REPO_DIR/playbook.yml" --ask-become-pass "$@"
+"$REPO_DIR/apply.sh" "$@"
 
 # --- GitHub identity ---
 if [[ "$SKIP_GITHUB" == "1" ]]; then
