@@ -104,7 +104,15 @@
             cmd: pacman -U --noconfirm --needed {{ pkg.files | map(attribute='path') | join(' ') }}
           changed_when: true
 
+    - name: List installed packages
+      ansible.builtin.command: pacman -Qq
+      register: installed
+      changed_when: false
+
     - name: Install AUR packages
+      vars:
+        missing: "{{ aur_packages | difference(installed.stdout_lines) }}"
+      when: missing | length > 0
       block:
         - name: Allow paru to run pacman without a password prompt
           become: true
@@ -117,7 +125,7 @@
         - name: Install with paru
           ansible.builtin.command:
             cmd: paru -S --noconfirm --needed --skipreview {{ item }}
-          loop: "{{ aur_packages }}"
+          loop: "{{ missing }}"
           changed_when: true
 
       always:
