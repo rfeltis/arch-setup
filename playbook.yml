@@ -11,7 +11,7 @@
     packages:
       # KDE
       - plasma-meta
-      - sddm
+      - plasma-login-manager
       - konsole
       - ghostty
       - dolphin
@@ -65,11 +65,23 @@
         name: "{{ packages }}"
         state: present
 
-    - name: Enable SDDM
+    - name: Check the current display manager
+      ansible.builtin.stat:
+        path: /etc/systemd/system/display-manager.service
+      register: dm
+
+    - name: Disable SDDM
       become: true
       ansible.builtin.systemd_service:
         name: sddm
-        enabled: true
+        enabled: false
+      when: "'sddm' in dm.stat.lnk_target | default('')"
+
+    - name: Make plasma-login-manager the display manager
+      become: true
+      ansible.builtin.command: systemctl enable --force plasmalogin.service
+      when: "'plasmalogin' not in dm.stat.lnk_target | default('')"
+      changed_when: true
 
     - name: Set fish as the login shell
       become: true
