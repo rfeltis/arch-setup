@@ -130,6 +130,7 @@
             mode: "0440"
             validate: visudo -cf %s
             content: "{{ lookup('env', 'USER') }} ALL=(ALL) NOPASSWD: /usr/bin/pacman\n"
+          changed_when: false
 
         - name: Install with paru
           ansible.builtin.command:
@@ -143,3 +144,4 @@
           ansible.builtin.file:
             path: /etc/sudoers.d/99-paru
             state: absent
+          changed_when: false
