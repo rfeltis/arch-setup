@@ -4,6 +4,7 @@
   gather_facts: false
 
   vars:
+    fish_config: "{{ lookup('env', 'HOME') }}/.config/fish/config.fish"
     packages:
       # KDE
       - plasma-meta
@@ -15,6 +16,7 @@
       - eza
       - fzf
       - btop
+      - zoxide
       # build deps for paru
       - base-devel
       - git
@@ -44,15 +46,18 @@
         name: "{{ ansible_user_id | default(lookup('env', 'USER')) }}"
         shell: /usr/bin/fish
 
-    - name: Configure fzf for fish
-      ansible.builtin.copy:
-        dest: "{{ lookup('env', 'HOME') }}/.config/fish/conf.d/fzf.fish"
-        mode: "0644"
-        content: |
-          status is-interactive; or exit 0
-          fzf --fish | source
-          bind \cr fzf-history-widget
-          bind -M insert \cr fzf-history-widget
+    - name: Create the fish config directory
+      ansible.builtin.file:
+        path: "{{ fish_config | dirname }}"
+        state: directory
+        mode: "0755"
+
+    - name: Hard link the fish config from the repo
+      ansible.builtin.file:
+        src: "{{ playbook_dir }}/fish/config.fish"
+        dest: "{{ fish_config }}"
+        state: hard
+        force: true
 
     - name: Check for paru
       ansible.builtin.command: command -v paru
