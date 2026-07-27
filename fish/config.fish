@@ -6,8 +6,8 @@ bind -M insert \cr fzf-history-widget
 
 zoxide init fish --cmd z | source
 
-alias ls 'eza --group-directories-first --icons'
-alias ll 'eza -l --group-directories-first --icons --git'
-alias la 'eza -la --group-directories-first --icons --git'
-alias lt 'eza --tree --level=2 --icons'
-alias top 'btop'
+abbr -a ls 'eza --group-directories-first --icons'
+abbr -a ll 'eza -l --group-directories-first --icons --git'
+abbr -a la 'eza -la --group-directories-first --icons --git'
+abbr -a lt 'eza --tree --level=2 --icons'
+abbr -a top btop
