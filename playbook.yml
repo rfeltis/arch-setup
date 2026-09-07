@@ -22,6 +22,7 @@
       - btop
       - zoxide
       - fastfetch
+      - pciutils
       - micro
       - ncdu
       - nano
@@ -46,6 +47,12 @@
       - linux-surface
       - linux-surface-headers
       - iptsd
+
+    nvidia_packages:
+      - nvidia-open-dkms
+      - nvidia-utils
+      - lib32-nvidia-utils
+      - nvidia-settings
 
     aur_packages:
       - brave-bin
@@ -117,6 +124,24 @@
         name: "{{ surface_packages }}"
         state: present
       when: is_surface
+
+    - name: Detect PCI devices
+      ansible.builtin.command: lspci -Dn
+      register: pci_devices
+      changed_when: false
+      check_mode: false
+
+    - name: Detect NVIDIA graphics hardware
+      ansible.builtin.set_fact:
+        has_nvidia_gpu: >-
+          {{ pci_devices.stdout is search('(?im)^\S+\s+03[0-9a-f]{2}:\s+10de:') }}
+
+    - name: Install NVIDIA open kernel modules and utilities
+      become: true
+      ansible.builtin.package:
+        name: "{{ nvidia_packages }}"
+        state: present
+      when: has_nvidia_gpu
 
     - name: Check the current display manager
       ansible.builtin.stat:
