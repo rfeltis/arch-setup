@@ -59,6 +59,7 @@
       - visual-studio-code-bin
       - discord
       - github-copilot-cli
+      - github-copilot-app-bin
       - herdr-bin
       - r2modman-bin
       - bazecor
