@@ -11,6 +11,9 @@ display class IDs, including on systems with multiple GPUs. When one is present,
 Ansible installs `nvidia-open-dkms`, `nvidia-utils`, `lib32-nvidia-utils` (for Steam),
 and `nvidia-settings`. Systems without an NVIDIA GPU skip these packages.
 
+Sunshine (the Moonlight host) is optional. The playbook asks whether to install
+it; answer `y` to pull the AUR `sunshine` package.
+
 The open kernel modules require a Turing or newer NVIDIA GPU. Older cards need
 a legacy driver instead and are not supported by this setup. DKMS uses the
 `linux-headers` installed by the playbook (and `linux-surface-headers` on Surface
