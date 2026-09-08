@@ -226,15 +226,6 @@
             path: /tmp/paru
             state: absent
 
-    - name: Ask whether to install Sunshine
-      ansible.builtin.pause:
-        prompt: "Install Sunshine (Moonlight host)? [y/N]"
-      register: sunshine_prompt
-
-    - name: Set install_sunshine from the prompt
-      ansible.builtin.set_fact:
-        install_sunshine: "{{ sunshine_prompt.user_input | default('') | trim | lower in ['y', 'yes'] }}"
-
     - name: List installed packages
       ansible.builtin.command: pacman -Qq
       register: installed
@@ -242,7 +233,7 @@
 
     - name: Install AUR packages
       vars:
-        selected_aur_packages: "{{ aur_packages + (sunshine_aur_packages if install_sunshine | bool else []) }}"
+        selected_aur_packages: "{{ aur_packages + (sunshine_aur_packages if ansible_hostname == 'livingroom' else []) }}"
         missing: "{{ selected_aur_packages | difference(installed.stdout_lines) }}"
       when: missing | length > 0
       block:
