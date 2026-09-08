@@ -70,6 +70,10 @@
     sunshine_aur_packages:
       - sunshine
 
+    stryketopia_packages:
+      - sshfs
+      - gocryptfs
+
   tasks:
     - name: Detect Surface hardware
       ansible.builtin.set_fact:
@@ -122,6 +126,13 @@
       ansible.builtin.package:
         name: "{{ packages }}"
         state: present
+
+    - name: Install stryketopia packages
+      become: true
+      ansible.builtin.package:
+        name: "{{ stryketopia_packages }}"
+        state: present
+      when: ansible_hostname == 'stryketopia'
 
     - name: Install the Surface kernel
       become: true
