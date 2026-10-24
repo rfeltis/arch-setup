@@ -14,6 +14,11 @@ and `nvidia-settings`. Systems without an NVIDIA GPU skip these packages.
 Sunshine (the Moonlight host) is installed from the AUR only when the hostname
 is `livingroom`. Other machines skip it.
 
+A **Gamescope (Steam)** session is added to the login screen. It runs Steam Big
+Picture inside Gamescope, and the session ends (returning to the login screen)
+when Steam fully quits. The launch options live in
+`gamescope/gamescope-session`.
+
 The open kernel modules require a Turing or newer NVIDIA GPU. Older cards need
 a legacy driver instead and are not supported by this setup. DKMS uses the
 `linux-headers` installed by the playbook (and `linux-surface-headers` on Surface

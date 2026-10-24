@@ -35,6 +35,7 @@
       - gimp
       - krita
       - steam
+      - gamescope
       - mumble
       - feishin
       - signal-desktop
@@ -178,6 +179,20 @@
       ansible.builtin.command: systemctl enable --force plasmalogin.service
       when: "'plasmalogin' not in dm.stat.lnk_target | default('')"
       changed_when: true
+
+    - name: Install the Gamescope session launcher
+      become: true
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/gamescope/gamescope-session"
+        dest: /usr/local/bin/gamescope-session
+        mode: "0755"
+
+    - name: Add Gamescope to the login manager sessions
+      become: true
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/gamescope/steam-gamescope.desktop"
+        dest: /usr/share/wayland-sessions/steam-gamescope.desktop
+        mode: "0644"
 
     - name: Set fish as the login shell
       become: true

@@ -1,0 +1,2 @@
+#!/bin/sh
+exec gamescope -e -f --adaptive-sync -- steam -gamepadui

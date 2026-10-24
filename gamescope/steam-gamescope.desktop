@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Gamescope (Steam)
+Comment=Steam Big Picture in Gamescope
+Exec=/usr/local/bin/gamescope-session
+TryExec=/usr/bin/gamescope
+Type=Application
+DesktopNames=gamescope
