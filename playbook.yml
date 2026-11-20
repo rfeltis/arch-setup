@@ -39,10 +39,9 @@
       - mumble
       - feishin
       - signal-desktop
-      # build deps for paru
+      # build deps for AUR packages
       - base-devel
       - git
-      - rust
       - dkms
       - linux-headers
 
@@ -220,45 +219,46 @@
         path: /usr/bin/paru
       register: paru
 
-    - name: Build and install paru
+    - name: Install paru-bin
       when: not paru.stat.exists
       block:
-        - name: Clone paru
+        - name: Clone paru-bin
           ansible.builtin.git:
-            repo: https://aur.archlinux.org/paru.git
-            dest: /tmp/paru
+            repo: https://aur.archlinux.org/paru-bin.git
+            dest: /tmp/paru-bin
             depth: 1
             version: master
 
-        - name: Build paru
+        - name: Package paru-bin
           ansible.builtin.command:
             cmd: makepkg -sf --noconfirm
-            chdir: /tmp/paru
+            chdir: /tmp/paru-bin
           changed_when: true
 
         - name: Find the built package
           ansible.builtin.find:
-            paths: /tmp/paru
-            patterns: "paru-*.pkg.tar.*"
-            excludes: "paru-debug-*"
+            paths: /tmp/paru-bin
+            patterns: "paru-bin-*.pkg.tar.*"
+            excludes: "paru-bin-debug-*"
           register: pkg
 
-        - name: Install paru
+        - name: Install paru-bin
           become: true
           ansible.builtin.command:
             cmd: pacman -U --noconfirm --needed {{ pkg.files | map(attribute='path') | join(' ') }}
           changed_when: true
 
       always:
-        - name: Remove the paru build directory
+        - name: Remove the paru-bin build directory
           ansible.builtin.file:
-            path: /tmp/paru
+            path: /tmp/paru-bin
             state: absent
 
     - name: List installed packages
       ansible.builtin.command: pacman -Qq
       register: installed
       changed_when: false
+      check_mode: false
 
     - name: Install AUR packages
       vars:

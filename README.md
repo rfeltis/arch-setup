@@ -19,6 +19,9 @@ Picture inside Gamescope, and the session ends (returning to the login screen)
 when Steam fully quits. The launch options live in
 `gamescope/gamescope-session`.
 
+AUR packages are installed with `paru-bin`, the prebuilt version of paru, so no
+Rust build is needed.
+
 The open kernel modules require a Turing or newer NVIDIA GPU. Older cards need
 a legacy driver instead and are not supported by this setup. DKMS uses the
 `linux-headers` installed by the playbook (and `linux-surface-headers` on Surface
