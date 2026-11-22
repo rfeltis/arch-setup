@@ -14,6 +14,11 @@ and `nvidia-settings`. Systems without an NVIDIA GPU skip these packages.
 Sunshine (the Moonlight host) is installed from the AUR only when the hostname
 is `livingroom`. Other machines skip it.
 
+On `stryketopia`, the Canon printer driver (`cnrdrvcups-lb-bin`) and Howdy face
+login (`howdy-git`) are installed from the AUR. The playbook points Howdy at the
+Logitech BRIO and enables it for `sudo` and the login screen. Faces aren't
+stored in the repo; after a reinstall, enroll yours with `sudo howdy add`.
+
 A **Gamescope (Steam)** session is added to the login screen. It runs Steam Big
 Picture inside Gamescope, and the session ends (returning to the login screen)
 when Steam fully quits. The launch options live in
