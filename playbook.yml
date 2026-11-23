@@ -84,6 +84,25 @@
     stryketopia_aur_packages:
       - cnrdrvcups-lb-bin
 
+    # Mounted on first access, so boot doesn't wait for the server
+    torrents_mount_src: "stryke@192.168.1.2:/mnt/data/torrents"
+    torrents_mount_path: "{{ lookup('env', 'HOME') }}/torrents"
+    torrents_mount_opts:
+      - x-systemd.automount
+      - x-systemd.mount-timeout=15s
+      - _netdev
+      - nofail
+      - reconnect
+      - ConnectTimeout=5
+      - ServerAliveInterval=15
+      - ServerAliveCountMax=3
+      # root does the mount, so point it at the user's key and known hosts
+      - "IdentityFile={{ lookup('env', 'HOME') }}/.ssh/id_ed25519"
+      - "UserKnownHostsFile={{ lookup('env', 'HOME') }}/.ssh/known_hosts"
+      - allow_other
+      - "uid={{ ansible_user_uid }}"
+      - "gid={{ ansible_user_gid }}"
+
   tasks:
     - name: Detect Surface hardware
       ansible.builtin.set_fact:
@@ -143,6 +162,33 @@
         name: "{{ stryketopia_packages }}"
         state: present
       when: ansible_hostname == 'stryketopia'
+
+    - name: Mount the torrents share over SSHFS
+      when: ansible_hostname == 'stryketopia'
+      block:
+        - name: Create the torrents mount point
+          ansible.builtin.file:
+            path: "{{ torrents_mount_path }}"
+            state: directory
+            mode: "0755"
+
+        - name: Add the torrents share to fstab
+          become: true
+          ansible.posix.mount:
+            src: "{{ torrents_mount_src }}"
+            path: "{{ torrents_mount_path }}"
+            fstype: fuse.sshfs
+            opts: "{{ torrents_mount_opts | join(',') }}"
+            state: present
+          register: torrents_fstab
+
+        - name: Start the torrents automount
+          become: true
+          ansible.builtin.systemd_service:
+            name: remote-fs.target
+            state: started
+            daemon_reload: true
+          when: torrents_fstab.changed
 
     - name: Install the Surface kernel
       become: true

@@ -17,6 +17,12 @@ is `livingroom`. Other machines skip it.
 On `stryketopia`, the Canon printer driver (`cnrdrvcups-lb-bin`) is installed
 from the AUR.
 
+Also on `stryketopia`, `192.168.1.2:/mnt/data/torrents` is mounted over SSHFS
+at `~/torrents`. It's added to `/etc/fstab` as a systemd automount, so it
+connects the first time the folder is opened and never holds up boot if the
+server is down. It uses `~/.ssh/id_ed25519`, which needs to be restored (and
+the server added to `known_hosts`) after a reinstall.
+
 A **Gamescope (Steam)** session is added to the login screen. It runs Steam Big
 Picture inside Gamescope, and the session ends (returning to the login screen)
 when Steam fully quits. The launch options live in
