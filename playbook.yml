@@ -82,13 +82,6 @@
 
     stryketopia_aur_packages:
       - cnrdrvcups-lb-bin
-      - howdy-git
-
-    # Face login with Howdy on stryketopia
-    howdy_device_path: /dev/v4l/by-id/usb-046d_Logitech_BRIO_367F0B2D-video-index2
-    howdy_pam_files:
-      - /etc/pam.d/sudo
-      - /etc/pam.d/system-login
 
   tasks:
     - name: Detect Surface hardware
@@ -305,30 +298,3 @@
             path: /etc/sudoers.d/99-paru
             state: absent
           changed_when: false
-
-    - name: Set up Howdy face login
-      when: ansible_hostname == 'stryketopia'
-      block:
-        - name: Check for the Howdy PAM module
-          ansible.builtin.stat:
-            path: /usr/lib/security/pam_howdy.so
-          register: pam_howdy
-
-        - name: Point Howdy at the camera
-          become: true
-          ansible.builtin.lineinfile:
-            path: /etc/howdy/config.ini
-            regexp: '^device_path\s*='
-            line: "device_path = {{ howdy_device_path }}"
-          when: pam_howdy.stat.exists
-
-        # Only added when the module exists: PAM fails if it can't load a module, which would lock out sudo.
-        - name: Allow face login for sudo and the login screen
-          become: true
-          ansible.builtin.lineinfile:
-            path: "{{ item }}"
-            regexp: 'pam_howdy\.so'
-            line: "auth       sufficient pam_howdy.so"
-            insertafter: '^#%PAM-1\.0'
-          loop: "{{ howdy_pam_files }}"
-          when: pam_howdy.stat.exists
