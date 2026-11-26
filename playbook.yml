@@ -40,6 +40,7 @@
       - mumble
       - feishin
       - signal-desktop
+      - flatpak
       # build deps for AUR packages
       - base-devel
       - git
@@ -83,6 +84,9 @@
 
     stryketopia_aur_packages:
       - cnrdrvcups-lb-bin
+
+    flatpak_packages:
+      - com.core447.StreamController
 
     # Mounted on first access, so boot doesn't wait for the server
     torrents_mount_src: "stryke@192.168.1.2:/mnt/data/torrents"
@@ -359,3 +363,39 @@
             path: /etc/sudoers.d/99-paru
             state: absent
           changed_when: false
+
+    - name: Add the Flathub repository
+      become: true
+      community.general.flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        method: system
+
+    - name: Install Flatpak packages
+      become: true
+      community.general.flatpak:
+        name: "{{ flatpak_packages }}"
+        remote: flathub
+        state: present
+        method: system
+
+    - name: Install Elgato Stream Deck udev rules
+      become: true
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/udev/60-streamdeck.rules"
+        dest: /etc/udev/rules.d/60-streamdeck.rules
+        mode: "0644"
+      register: streamdeck_udev
+
+    - name: Reload udev rules
+      become: true
+      ansible.builtin.command: udevadm control --reload-rules
+      when: streamdeck_udev.changed
+      changed_when: true
+
+    - name: Trigger udev rules
+      become: true
+      ansible.builtin.command: udevadm trigger
+      when: streamdeck_udev.changed
+      changed_when: true

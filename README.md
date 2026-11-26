@@ -31,6 +31,10 @@ when Steam fully quits. The launch options live in
 AUR packages are installed with `paru-bin`, the prebuilt version of paru, so no
 Rust build is needed.
 
+StreamController (`com.core447.StreamController`) is installed via Flatpak from
+Flathub (the AUR packages are orphaned), along with the Elgato Stream Deck udev
+rules in `udev/60-streamdeck.rules`.
+
 The open kernel modules require a Turing or newer NVIDIA GPU. Older cards need
 a legacy driver instead and are not supported by this setup. DKMS uses the
 `linux-headers` installed by the playbook (and `linux-surface-headers` on Surface
